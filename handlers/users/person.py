@@ -3,8 +3,9 @@ import random as r
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Command
+from aiogram.utils.markdown import hbold, hitalic
 
-from mimesis import Person
+from mimesis import Person, Address
 from mimesis.locales import Locale
 from mimesis.enums import Gender
 
@@ -19,29 +20,29 @@ from states.person_gen import GeneratePerson
 
 def send(name, birthday, email, phone, height, weight, eye, polit) -> str:
     return f"""
-Имя и фамилия: {name}
-День рождения(Д,М,Г): {birthday}
-Почта: {email}
-Телефон: {phone}
+👤 Имя и фамилия: {hbold(name)}
+🎂 День рождения(Д,М,Г): {hbold(birthday)}
+📪 Почта: {hbold(email)}
+☎️ Телефон: {hbold(phone)}
 
-Рост: {height} см.
-Вес: {weight} кг.
-Цвет глаз: {eye}
-Политические взгляды: {polit}
+📢 Рост: {hbold(height)} см.
+⚖️ Вес: {hbold(weight)} кг.
+👁️ Цвет глаз: {hbold(eye)}
+🚨 Политические взгляды: {hbold(polit)}
 
-Город:
+{hitalic('/person')} - Создать новую личность. 
 """
 
 @dp.message_handler(Command("person"))
 async def new_person(message: types.Message, state: FSMContext):
-    await message.answer("Выберите страну проживания вашей личности.", reply_markup=country_kb)
+    await message.answer("🗾 Выберите страну проживания вашей личности.", reply_markup=country_kb)
 
     await GeneratePerson.select_country.set()
 
 @dp.message_handler(text="Россия", state=GeneratePerson.select_country)
 async def select_gender(message: types.Message, state: FSMContext):
     country = message.text
-    await message.answer("Выберите пол вашей личности", reply_markup=gender_select)
+    await message.answer("👤 Выберите пол вашей личности", reply_markup=gender_select)
     
     async with state.proxy() as data:
         data["country"] = country
@@ -52,7 +53,7 @@ async def select_gender(message: types.Message, state: FSMContext):
 @dp.message_handler(text="Украина", state=GeneratePerson.select_country)
 async def ukraine(message: types.Message, state: FSMContext):
     country = message.text
-    await message.answer("Выберите пол вашей личности", reply_markup=gender_select)
+    await message.answer("👤 Выберите пол вашей личности", reply_markup=gender_select)
     
     async with state.proxy() as data:
         data["country"] = country
@@ -62,7 +63,7 @@ async def ukraine(message: types.Message, state: FSMContext):
 @dp.message_handler(text="США", state=GeneratePerson.select_country)
 async def usa(message: types.Message, state: FSMContext):
     country = message.text
-    await message.answer("Выберите пол вашей личности", reply_markup=gender_select)
+    await message.answer("👤 Выберите пол вашей личности", reply_markup=gender_select)
     
     async with state.proxy() as data:
         data["country"] = country
@@ -74,8 +75,6 @@ async def usa(message: types.Message, state: FSMContext):
 async def get_person(message: types.Message, state: FSMContext):
     country = await state.get_data("country")
     gender = message.text
-
-    print(country.get("country"), gender)
 
     if country.get("country") == "Россия":
         person = Person(locale=Locale.RU)
